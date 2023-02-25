@@ -22,9 +22,11 @@
 <div id="myDiv0" class="divs" style="width:600px;height:250px;"></div>
 <input type="file" name="" id="inputfile" onchange="readCSVFile(`inputfile`,0)">
 <button onclick="stopGraphing(0)">stop</button>
+<button onclick="Link(this.id)" id="linked">Link off</button>
+
 <button onclick="continueGraphing(0)">cont</button>
 <input type="color" class="col" onchange="changecolor(0)">
-<input type="range" name="" class="speed" min="4" max="40" onchange="changeSpeed(0)">
+<input type="range" name="" class="speed" min="4" max="40" >
 <button onclick="Show_Hide(0)">S/H signal</button>
 <button onclick="Rewind(0)">Rewind signal</button>
 <input type="text" class="Title" placeholder="add Title" onchange="ChangeTitle(0)">

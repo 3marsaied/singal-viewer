@@ -15,6 +15,8 @@ let Xlabel_input=["",""]
 let Ylabel_input=["",""]
 let rangeX=[[0,2],[0,2]];
 let Deration=[0,0];
+let Link_Flag=false
+
 function readCSVFile(id, Graph_num) {
 
     var files = document.querySelector(`#${id}`).files;
@@ -37,6 +39,8 @@ function readCSVFile(id, Graph_num) {
             var csvdata = event.target.result;
 
             // Split by line break to gets rows Array
+ 
+            
             var rowData = csvdata.split('\n');
             File_Data_X[Graph_num]=[]
             File_Data_y[Graph_num]=[]
@@ -51,7 +55,6 @@ function readCSVFile(id, Graph_num) {
                 y: [0],
                 type: 'scatter'
             };
-            allTraces=document.getElementById(`myDiv${Graph_num}`).data;
             if(document.getElementById(`myDiv${Graph_num}`).childElementCount>0){
                 Plotly.deleteTraces(`myDiv${Graph_num}`, [0]);
                 Currant_Data_Graphing_Array_x[Graph_num]=[]
@@ -73,21 +76,25 @@ function readCSVFile(id, Graph_num) {
 
 }
 function stopGraphing(Graph_num) {
-    stop_Flag_Array[Graph_num] = true;
+  
+  stop_Flag_Array[Graph_num] = true;
+  if(Link_Flag)
+  stop_Flag_Array[Graph_num^1] = true;
 }
 function continueGraphing(Graph_num) {
     stop_Flag_Array[Graph_num] = false
+    if(Link_Flag)
+    stop_Flag_Array[Graph_num^1] = false
+
 }
 function changecolor(Graph_num) {
     Current_Color_Array[Graph_num] = document.getElementsByClassName('col')[Graph_num].value
+    if(Link_Flag)
+    Current_Color_Array[Graph_num^1] = document.getElementsByClassName('col')[Graph_num].value
 }
-function changeSpeed(Graph_num) {
-
-    return 44 - parseInt(speed[Graph_num].value)
-}
-
 function graphing() {
     UpdateGraph(0)
+    if(!Link_Flag)
     UpdateGraph(1)
 
 }
@@ -96,7 +103,14 @@ function UpdateGraph(Graph_num) {
         if(!Rewind_Flag_Array[Graph_num]){
         let NewDataX = File_Data_X[Graph_num].slice(Currant_Size_of_Graphing[Graph_num], Currant_Size_of_Graphing[Graph_num] + parseInt(speed[Graph_num].value))
         let NewDataY = File_Data_y[Graph_num].slice(Currant_Size_of_Graphing[Graph_num], Currant_Size_of_Graphing[Graph_num] + parseInt(speed[Graph_num].value))
-
+       if(Link_Flag){
+        let NewDataX1 = File_Data_X[Graph_num^1].slice(Currant_Size_of_Graphing[Graph_num^1], Currant_Size_of_Graphing[Graph_num^1] + parseInt(speed[Graph_num].value))
+        let NewDataY1 = File_Data_y[Graph_num^1].slice(Currant_Size_of_Graphing[Graph_num^1], Currant_Size_of_Graphing[Graph_num^1] + parseInt(speed[Graph_num].value))
+        Currant_Data_Graphing_Array_x[Graph_num^1] = Currant_Data_Graphing_Array_x[Graph_num^1].concat(NewDataX1)
+        Currant_Data_Graphing_Array_y[Graph_num^1] = Currant_Data_Graphing_Array_y[Graph_num^1].concat(NewDataY1)
+        Currant_Size_of_Graphing[Graph_num^1] += parseInt(speed[Graph_num].value)
+        UpdateGraphOnSite(Graph_num^1)
+      }
         Currant_Data_Graphing_Array_x[Graph_num] = Currant_Data_Graphing_Array_x[Graph_num].concat(NewDataX)
 
         Currant_Data_Graphing_Array_y[Graph_num] = Currant_Data_Graphing_Array_y[Graph_num].concat(NewDataY)
@@ -108,14 +122,17 @@ function UpdateGraph(Graph_num) {
             if( Currant_Size_of_Graphing[Graph_num]>=10){
             Currant_Data_Graphing_Array_x[Graph_num]= Currant_Data_Graphing_Array_x[Graph_num].splice(0, Currant_Data_Graphing_Array_x[Graph_num].length-parseInt(speed[Graph_num].value))
             Currant_Data_Graphing_Array_y[Graph_num]= Currant_Data_Graphing_Array_y[Graph_num].splice(0, Currant_Data_Graphing_Array_y[Graph_num].length-parseInt(speed[Graph_num].value))
-            
+            if(Link_Flag){
+              Currant_Data_Graphing_Array_x[Graph_num^1]= Currant_Data_Graphing_Array_x[Graph_num^1].splice(0, Currant_Data_Graphing_Array_x[Graph_num^1].length-parseInt(speed[Graph_num].value))
+              Currant_Data_Graphing_Array_y[Graph_num^1]= Currant_Data_Graphing_Array_y[Graph_num^1].splice(0, Currant_Data_Graphing_Array_y[Graph_num^1].length-parseInt(speed[Graph_num].value))  
+              Currant_Size_of_Graphing[Graph_num^1] -= parseInt(speed[Graph_num].value)
+              if(!(File_Data_X[Graph_num^1].length==0))
+              UpdateGraphOnSite(Graph_num^1)
+            }
             Currant_Size_of_Graphing[Graph_num] -= parseInt(speed[Graph_num].value)
             if(!(File_Data_X[Graph_num].length==0))
-            
             UpdateGraphOnSite(Graph_num)
-            }
-    
-    
+            } 
         }
         Statistics(Graph_num)
     }
@@ -182,23 +199,32 @@ function UpdateGraphOnSite(Graph_num) {
 
 }
 function Show_Hide(Graph_num) {
-    Show_Flag_Array[Graph_num]=!Show_Flag_Array[Graph_num]
+    Show_Flag_Array[Graph_num]=!Show_Flag_Array[Graph_num]   
+    if(Link_Flag)
+    Show_Flag_Array[Graph_num^1] = Show_Flag_Array[Graph_num];
 }
 function Rewind(Graph_num) {
     Rewind_Flag_Array[Graph_num]=!Rewind_Flag_Array[Graph_num]
+    if(Link_Flag)
+    Rewind_Flag_Array[Graph_num^1] =  Rewind_Flag_Array[Graph_num];
 }
 
 function ChangeTitle(Graph_num){
   label_input[Graph_num]=  document.getElementsByClassName('Title')[Graph_num].value
+  if(Link_Flag)
+  label_input[Graph_num^1]= label_input[Graph_num]
 
 }
 function ChangeXaXIS(Graph_num){
   Xlabel_input[Graph_num]=  document.getElementsByClassName('XAxis')[Graph_num].value
+  if(Link_Flag)
+  Xlabel_input[Graph_num^1]= Xlabel_input[Graph_num]
 
 }
 function ChangeYaXIS(Graph_num){
   Ylabel_input[Graph_num]=  document.getElementsByClassName('YAxis')[Graph_num].value
-
+  if(Link_Flag)
+  Ylabel_input[Graph_num^1]= Ylabel_input[Graph_num]
 }
 function Statistics(Graph_num) {
     document.getElementById(`mean${Graph_num}`).innerText=parseFloat((ss.mean(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
@@ -206,4 +232,9 @@ function Statistics(Graph_num) {
     document.getElementById(`max${Graph_num}`).innerText=parseFloat((ss.max(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
     document.getElementById(`STD${Graph_num}`).innerText=parseFloat((ss.standardDeviation(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
     document.getElementById(`der${Graph_num}`).innerText=parseFloat((Deration[Graph_num]*100)/1000).toPrecision(3)
+}
+
+function Link(id){
+  Link_Flag=!Link_Flag
+document.getElementById(id).innerText=Link_Flag?"Link On":"Link off"
 }
