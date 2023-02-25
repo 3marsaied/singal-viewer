@@ -9,26 +9,27 @@
   <link rel="stylesheet" href="style.css">
  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
  <link rel="stylesheet" href="style.css">
 <title>Task </title>
 </head>
 <body>
-<nav>
-    <h2>
-      Signal task
-    </h2>
-</nav>
+  <nav style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0;">Multi-Channel Signal Viewer</h2>
+    <button onclick="Link(this.id)" id="linked" style="margin-left: auto; font-size: x-large;">Link off</button>
+  </nav>
+  
 
 <div id="myDiv0" class="divs" style="width:600px;height:250px;"></div>
 <input type="file" name="" id="inputfile" onchange="readCSVFile(`inputfile`,0)">
-<button onclick="stopGraphing(0)">stop</button>
-<button onclick="Link(this.id)" id="linked">Link off</button>
+<button onclick="stopGraphing(0)" style="font-size: x-large;">stop</button>
 
-<button onclick="continueGraphing(0)">cont</button>
+<button onclick="continueGraphing(0)"  style="font-size: x-large;">cont</button>
 <input type="color" class="col" onchange="changecolor(0)">
 <input type="range" name="" class="speed" min="4" max="40" >
-<button onclick="Show_Hide(0)">S/H signal</button>
-<button onclick="Rewind(0)">Rewind signal</button>
+<button onclick="Show_Hide(0)"  style="font-size: x-large;">S/H signal</button>
+<button onclick="Rewind(0)"  style="font-size: x-large;">Rewind signal</button>
 <input type="text" class="Title" placeholder="add Title" onchange="ChangeTitle(0)">
 <input type="text" class="XAxis" placeholder="add X AXIS" onchange="ChangeXaXIS(0)">
 <input type="text" class="YAxis" placeholder="add y AXIS" onchange="ChangeYaXIS(0)">
@@ -75,12 +76,12 @@
 
 <div id="myDiv1"class="divs" style="width:600px;height:250px;"></div>
 <input type="file" name="" id="inputfile2" onchange="readCSVFile(`inputfile2`,1)">
-<button onclick="stopGraphing(1)">stop</button>
-<button onclick="continueGraphing(1)">cont</button>
+<button onclick="stopGraphing(1)"  style="font-size: x-large;">stop</button>
+<button onclick="continueGraphing(1)"  style="font-size: x-large;">cont</button>
 <input type="color" class="col" onchange="changecolor(1)">
 <input type="range" name="" class="speed" min="4" max="40" onchange="changeSpeed(1)">
-<button onclick="Show_Hide(1)">S/H signal</button>
-<button onclick="Rewind(1)">Rewind signal</button>
+<button onclick="Show_Hide(1)"  style="font-size: x-large;">S/H signal</button>
+<button onclick="Rewind(1)"  style="font-size: x-large;">Rewind signal</button>
 <input type="text" class="Title"placeholder="add Title" onchange="ChangeTitle(1)">
 <input type="text" class="XAxis" placeholder="add X AXIS" onchange="ChangeXaXIS(1)">
 <input type="text" class="YAxis" placeholder="add  y AXIS" onchange="ChangeYaXIS(1)">
