@@ -16,7 +16,10 @@ let Ylabel_input=["",""]
 let rangeX=[[0,2],[0,2]];
 let Deration=[0,0];
 let Link_Flag=false
-
+var plots = [document.getElementById(`myDiv${0}`), document.getElementById(`myDiv${1}`)]
+let divs=[document.getElementById(`myDiv${0}`), document.getElementById(`myDiv${1}`)]
+let scroll_flag=["",""]
+let stop_lopping_flag=true;
 function readCSVFile(id, Graph_num) {
 
     var files = document.querySelector(`#${id}`).files;
@@ -136,9 +139,16 @@ function UpdateGraph(Graph_num) {
         }
         Statistics(Graph_num)
     }
+    if((divs[0].childElementCount>0&&divs[0].layout.dragmode=='pan')||(divs[1].childElementCount>0&&divs[1].layout.dragmode=='pan')){
+  divs[0].on("plotly_relayout", function(ed) {
+    relayout(ed, divs);
+ });
+
+}
   
 }
 function UpdateGraphOnSite(Graph_num) {
+  
     let layout = {
         title: {
           text:label_input[Graph_num]
@@ -158,7 +168,8 @@ function UpdateGraphOnSite(Graph_num) {
               color: '#7f7f7f'
             },
           },
-          range:rangeX[Graph_num]
+          range:rangeX[Graph_num],
+          rangeslider:Link_Flag&&(scroll_flag[0]!=""||scroll_flag[1]!="")?{}: scroll_flag[Graph_num]
           
         },
         yaxis: {
@@ -185,7 +196,15 @@ function UpdateGraphOnSite(Graph_num) {
       
         rangeX[Graph_num]=[Currant_Data_Graphing_Array_x[Graph_num][parseInt(Currant_Data_Graphing_Array_x[Graph_num].length)-10]-3,Currant_Data_Graphing_Array_x[Graph_num][parseInt(Currant_Data_Graphing_Array_x[Graph_num].length)-2]]
       }
-
+      if(Link_Flag&&stop_lopping_flag){
+      plots.forEach(div => {
+      div.on("plotly_relayout", function(ed) {
+           relayout(ed, divs);
+        });
+      });
+      stop_lopping_flag=false;
+      }
+    
     Plotly.react(`myDiv${Graph_num}`, [{
         x: Currant_Data_Graphing_Array_x[Graph_num],
         y: Currant_Data_Graphing_Array_y[Graph_num],
@@ -193,9 +212,9 @@ function UpdateGraphOnSite(Graph_num) {
             color: Current_Color_Array[Graph_num]
         }
 
-    }],layout);
-
+    }],layout,{showSendToCloud: true});
     Plotly.restyle(document.getElementById(`myDiv${Graph_num}`), {  "visible": Show_Flag_Array[Graph_num]});
+
 
 }
 function Show_Hide(Graph_num) {
@@ -226,15 +245,79 @@ function ChangeYaXIS(Graph_num){
   if(Link_Flag)
   Ylabel_input[Graph_num^1]= Ylabel_input[Graph_num]
 }
-function Statistics(Graph_num) {
-    document.getElementById(`mean${Graph_num}`).innerText=parseFloat((ss.mean(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
-    document.getElementById(`min${Graph_num}`).innerText=parseFloat((ss.min(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
-    document.getElementById(`max${Graph_num}`).innerText=parseFloat((ss.max(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
-    document.getElementById(`STD${Graph_num}`).innerText=parseFloat((ss.standardDeviation(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
-    document.getElementById(`der${Graph_num}`).innerText=parseFloat((Deration[Graph_num]*100)/1000).toPrecision(3)
-}
 
 function Link(id){
   Link_Flag=!Link_Flag
+  if(Link_Flag)stop_lopping_flag=true
 document.getElementById(id).innerText=Link_Flag?"Link On":"Link off"
 }
+
+
+ function relayout(ed, divs) {
+ 
+  if (Object.entries(ed).length === 0) {return;}
+  divs.forEach(async (div, i) => {
+    let x = div.layout.xaxis;
+    if (ed["xaxis.autorange"] && x.autorange) return;
+    if (x.range[0] != ed["xaxis.range[0]"] ||x.range[1] != ed["xaxis.range[1]"])
+    {
+      var update = {
+      'xaxis.range[0]': ed["xaxis.range[0]"],
+      'xaxis.range[1]': ed["xaxis.range[1]"],
+      'yaxis.range[0]':ed["yaxis.range[0]"],
+      'yaxis.range[1]':ed["yaxis.range[1]"],
+      'xaxis.autorange': ed["xaxis.autorange"],
+      'xaxis.rangeslider':ed['xaxis.rangeslider'],
+     };
+     if(typeof update["xaxis.range[0]"] == 'undefined'){
+      update["xaxis.range[0]"]=divs[0].layout.xaxis.range[0]
+      update["xaxis.range[1]"]=divs[0].layout.xaxis.range[1]
+     }
+     if(Link_Flag)
+    await Plotly.relayout(div, update);
+    }
+  });
+}
+
+function Scroll_NF(Graph_num){
+  scroll_flag[Graph_num]=scroll_flag[Graph_num]==""?{}:"";
+}
+
+document.getElementById("save").addEventListener("click", function() {
+  generatePDF();
+});
+
+function calculateStats(data) {
+  const values = data.map(d => d.y);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const mean = ss.mean(values);
+  const std = ss.standardDeviation(values);
+  const duration = data[data.length - 1].x - data[0].x;
+  return { min, max, mean, std, duration };
+}
+const stats = calculateStats(trace.data[0].y);
+function saveStatsAndScreenshot(stats, graphDiv) {
+  const pdf = new jsPDF();
+  
+  // Add stats table to PDF
+  const table = [
+    ['Label', 'Min', 'Max', 'Mean', 'Std', 'Duration'],
+    ['Signal 1', stats.min, stats.max, stats.mean, stats.std, stats.duration.toFixed(2)]
+  ];
+  pdf.autoTable({ head: table[0], body: table.slice(1) });
+  
+  // Add screenshot of graph to PDF
+  const graphData = graphDiv.querySelector('.js-plotly-plot').toDataURL();
+  pdf.addPage();
+  pdf.addImage(graphData, 'PNG', 10, 40, 180, 100);
+  
+  // Save PDF
+  pdf.save('stats.pdf');
+}
+const saveButton = document.getElementById('save');
+saveButton.addEventListener('click', () => {
+  const stats = calculateStats(trace.data[0].y);
+  const graphDiv = document.getElementById('myDiv0');
+  saveStatsAndScreenshot(stats, graphDiv);
+});
