@@ -20,6 +20,8 @@ var plots = [document.getElementById(`myDiv${0}`), document.getElementById(`myDi
 let divs=[document.getElementById(`myDiv${0}`), document.getElementById(`myDiv${1}`)]
 let scroll_flag=["",""]
 let stop_lopping_flag=true;
+let tables=Array.from( document.getElementsByTagName('table'))
+
 function readCSVFile(id, Graph_num) {
 
     var files = document.querySelector(`#${id}`).files;
@@ -203,14 +205,14 @@ function UpdateGraphOnSite(Graph_num) {
         });
       });
       stop_lopping_flag=false;
-      }
+      } //call lel zoom , scroll relayout 
     
     Plotly.react(`myDiv${Graph_num}`, [{
         x: Currant_Data_Graphing_Array_x[Graph_num],
         y: Currant_Data_Graphing_Array_y[Graph_num],
         type: 'scatter', marker: {
             color: Current_Color_Array[Graph_num]
-        }
+        }//m4 t3ed al rsm btzwed 3la al rasma dah law data mt5znah
 
     }],layout,{showSendToCloud: true});
     Plotly.restyle(document.getElementById(`myDiv${Graph_num}`), {  "visible": Show_Flag_Array[Graph_num]});
@@ -245,6 +247,14 @@ function ChangeYaXIS(Graph_num){
   if(Link_Flag)
   Ylabel_input[Graph_num^1]= Ylabel_input[Graph_num]
 }
+function Statistics(Graph_num) {
+    document.getElementById(`mean${Graph_num}`).innerText=parseFloat((ss.mean(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
+    document.getElementById(`min${Graph_num}`).innerText=parseFloat((ss.min(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
+    document.getElementById(`max${Graph_num}`).innerText=parseFloat((ss.max(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
+    document.getElementById(`STD${Graph_num}`).innerText=parseFloat((ss.standardDeviation(Currant_Data_Graphing_Array_y[Graph_num]))).toPrecision(3)
+    document.getElementById(`der${Graph_num}`).innerText=parseFloat((Deration[Graph_num]*100)/1000).toPrecision(3)
+
+}
 
 function Link(id){
   Link_Flag=!Link_Flag
@@ -261,7 +271,7 @@ document.getElementById(id).innerText=Link_Flag?"Link On":"Link off"
     if (ed["xaxis.autorange"] && x.autorange) return;
     if (x.range[0] != ed["xaxis.range[0]"] ||x.range[1] != ed["xaxis.range[1]"])
     {
-      var update = {
+      var update = {// by5ly kol al var nfs al value
       'xaxis.range[0]': ed["xaxis.range[0]"],
       'xaxis.range[1]': ed["xaxis.range[1]"],
       'yaxis.range[0]':ed["yaxis.range[0]"],
@@ -280,44 +290,67 @@ document.getElementById(id).innerText=Link_Flag?"Link On":"Link off"
 }
 
 function Scroll_NF(Graph_num){
-  scroll_flag[Graph_num]=scroll_flag[Graph_num]==""?{}:"";
+  scroll_flag[Graph_num]=scroll_flag[Graph_num]==""?{}:"";// if condition btrsm al scroll 
 }
 
-document.getElementById("save").addEventListener("click", function() {
-  generatePDF();
-});
+async function generatePDF() {
+  var pdf = new jsPDF({
+  margin:0
+    });
+let url0=await Plotly.toImage(divs[0],{
+  format:'jpeg',
+  height:300,
+  width:600,
+})
+let url1=await Plotly.toImage(divs[1],{
+  format:'jpeg',
+  height:300,
+  width:600,
+})
+makepdf(url0,0,pdf);
+pdf.addPage();
+makepdf(url1,1,pdf)
 
-function calculateStats(data) {
-  const values = data.map(d => d.y);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const mean = ss.mean(values);
-  const std = ss.standardDeviation(values);
-  const duration = data[data.length - 1].x - data[0].x;
-  return { min, max, mean, std, duration };
+pdf.save('Test.pdf');
 }
-const stats = calculateStats(trace.data[0].y);
-function saveStatsAndScreenshot(stats, graphDiv) {
-  const pdf = new jsPDF();
-  
-  // Add stats table to PDF
-  const table = [
-    ['Label', 'Min', 'Max', 'Mean', 'Std', 'Duration'],
-    ['Signal 1', stats.min, stats.max, stats.mean, stats.std, stats.duration.toFixed(2)]
-  ];
-  pdf.autoTable({ head: table[0], body: table.slice(1) });
-  
-  // Add screenshot of graph to PDF
-  const graphData = graphDiv.querySelector('.js-plotly-plot').toDataURL();
-  pdf.addPage();
-  pdf.addImage(graphData, 'PNG', 10, 40, 180, 100);
-  
-  // Save PDF
-  pdf.save('stats.pdf');
+
+
+
+function makepdf(url,Graph_num,pdf)
+{ 
+  var img = new Image()
+img.src =url
+pdf.setFontSize(20);
+pdf.addImage(img, 'JPEG',  12, 10, 203, 130)
+pdf.text(`Graph number ${Graph_num}`,20,20);
+
+
+let y=120
+pdf.setLineWidth(2);
+pdf.text(`Table ${Graph_num} :`,10,140);
+pdf.autoTable({
+    html: `#table${Graph_num}`,
+    startY: 150,
+    theme: 'grid',
+    columnStyles: {
+        0: {
+            halign: 'left',
+            tableWidth: 100,
+            },
+        1: {
+          halign: 'left',
+            tableWidth: 100,
+           },
+        2: {
+          halign: 'left',
+            tableWidth: 100,
+           },
+        3: {
+          halign: 'left',
+            tableWidth: 100,
+           }
+    },
+
+})
+
 }
-const saveButton = document.getElementById('save');
-saveButton.addEventListener('click', () => {
-  const stats = calculateStats(trace.data[0].y);
-  const graphDiv = document.getElementById('myDiv0');
-  saveStatsAndScreenshot(stats, graphDiv);
-});
